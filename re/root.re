@@ -20,7 +20,7 @@ let routes = [
   (
     "overview",
     TabNavigator.route(
-      ~screen=Favorites.component,
+      ~screen=Upcoming.component,
       ~label="Upcoming",
       ~icon=icon("clock")
     )

@@ -25,13 +25,19 @@ let styles =
           ]),
         "tweetButton":
           style([
-            paddingTop(Pt(6.)),
-            paddingBottom(Pt(6.)),
-            paddingLeft(Pt(30.)),
-            paddingRight(Pt(30.)),
+            paddingTop(Pt(10.)),
+            paddingBottom(Pt(10.)),
+            paddingLeft(Pt(35.)),
+            paddingRight(Pt(35.)),
             marginTop(Pt(15.)),
             backgroundColor("#00aced"),
             borderRadius(50.)
+          ]),
+        "doneIcon":
+          style([
+            alignItems(Center),
+            paddingTop(Pt(45.)),
+            paddingBottom(Pt(45.))
           ])
       }
     )
@@ -44,6 +50,9 @@ let tweet = () =>
 
 let alreadyFinished =
   <View>
+    <View style=styles##doneIcon>
+      <Icon name="check-circle" color="rgba(0,0,0,.07)" size=90 />
+    </View>
     <Text
       style=styles##finished
       value="FOSDEM already finished and there are no upcoming talks."
@@ -54,11 +63,14 @@ let alreadyFinished =
         value="Did you have a great time at FOSDEM this year?"
       />
       <View style=styles##tweetButton>
-        <Button
+        <IconButton
           onPress=tweet
           title="Tweet about it!"
           accessibilityLabel="Tweet about your experience at FOSDEM this year"
           color="white"
+          icon="twitter"
+          iconSize=24
+          fontSize=18
         />
       </View>
     </View>
