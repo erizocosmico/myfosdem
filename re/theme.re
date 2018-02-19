@@ -74,7 +74,19 @@ let styles =
             borderBottomWidth(1.),
             borderBottomColor(lightBorderColor)
           ]),
-        "statusBar": style([height(Pt(20.)), backgroundColor("white")])
+        "statusBar": style([height(Pt(20.)), backgroundColor("white")]),
+        "searchBar":
+          style([
+            padding(Pt(8.)),
+            borderRadius(10.),
+            margin(Pt(15.)),
+            backgroundColor(lightBorderColor),
+            flexDirection(Row),
+            alignItems(Center),
+            justifyContent(SpaceBetween)
+          ]),
+        "searchInput":
+          style([flex(1.), marginLeft(Pt(5.)), marginRight(Pt(5.))])
       }
     )
   );
