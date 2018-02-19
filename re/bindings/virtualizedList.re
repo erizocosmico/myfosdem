@@ -1,6 +1,11 @@
-[@bs.module "react-native"] external view : ReasonReact.reactClass = "VirtualizedList";
+[@bs.module "react-native"]
+external view : ReasonReact.reactClass = "VirtualizedList";
 
-type jsRenderBag('item) = {. "item": 'item, "index": int};
+type jsRenderBag('item) = {
+  .
+  "item": 'item,
+  "index": int
+};
 
 type renderBag('item) = {
   item: 'item,
@@ -9,9 +14,11 @@ type renderBag('item) = {
 
 type renderItem('item) = jsRenderBag('item) => ReasonReact.reactElement;
 
-let renderItem = (reRenderItem: renderBag('item) => ReasonReact.reactElement) : renderItem('item) =>
+let renderItem =
+    (reRenderItem: renderBag('item) => ReasonReact.reactElement)
+    : renderItem('item) =>
   (jsRenderBag: jsRenderBag('item)) =>
-reRenderItem({item: jsRenderBag##item, index: jsRenderBag##index});
+    reRenderItem({item: jsRenderBag##item, index: jsRenderBag##index});
 
 let make =
     (
@@ -39,4 +46,4 @@ let make =
           "maxToRenderPerBatch": from_opt(maxToRenderPerBatch)
         }
       )
-);
+  );

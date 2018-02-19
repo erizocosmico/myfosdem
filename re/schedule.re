@@ -117,6 +117,15 @@ module Event = {
     links: Xml.elements(node, "link") |> Array.map(Link.ofXml),
     favorite: false
   };
+  let ofRoomXml = (~date, node) : array(t) =>
+    Xml.elements(node, "event") |> Array.map(ofXml(~date));
+  let ofDayXml = node : array(t) => {
+    open Js;
+    let date = Xml.attribute(node, "date") |> Js.Option.getWithDefault("");
+    Xml.elements(node, "room")
+    |> Array.map(ofRoomXml(~date))
+    |> Array.reduce(Js.Array.concat, [||]);
+  };
   let encode = event =>
     Json.Encode.(
       object_([
@@ -155,67 +164,18 @@ module Event = {
     };
 };
 
-module Room = {
-  type t = {
-    name: string,
-    events: array(Event.t)
-  };
-  let ofXml = (~date="", node) => {
-    name: Xml.attribute(node, "name") |> Js.Option.getWithDefault("No name"),
-    events: Xml.elements(node, "event") |> Array.map(Event.ofXml(~date))
-  };
-  let encode = room =>
-    Json.Encode.(
-      object_([
-        ("name", room.name |> string),
-        ("events", room.events |> array(Event.encode))
-      ])
-    );
-  let decode = json =>
-    Json.Decode.{
-      name: json |> field("name", string),
-      events: json |> field("events", array(Event.decode))
-    };
-};
+type t = array(Event.t);
 
-module Day = {
-  type t = {
-    number: int,
-    date: string,
-    rooms: array(Room.t)
-  };
-  let ofXml = node => {
-    let date = Xml.attribute(node, "date") |> Js.Option.getWithDefault("");
-    {
-      number:
-        Xml.attribute(node, "index") |> optToInt |> Js.Option.getWithDefault(0),
-      date,
-      rooms: Xml.elements(node, "room") |> Array.map(Room.ofXml(~date))
-    };
-  };
-  let encode = day =>
-    Json.Encode.(
-      object_([
-        ("number", day.number |> int),
-        ("date", day.date |> string),
-        ("rooms", day.rooms |> array(Room.encode))
-      ])
-    );
-  let decode = json =>
-    Json.Decode.{
-      number: json |> field("number", int),
-      date: json |> field("date", string),
-      rooms: json |> field("rooms", array(Room.decode))
-    };
-};
+let ofXml = node =>
+  Js.(
+    Xml.elements(node, "day")
+    |> Array.map(Event.ofDayXml)
+    |> Array.reduce(Js.Array.concat, [||])
+  );
 
-type t = array(Day.t);
+let encode = schedule => schedule |> Json.Encode.array(Event.encode);
 
-let ofXml = node => Xml.elements(node, "day") |> Js.Array.map(Day.ofXml);
-
-let encode = schedule => schedule |> Json.Encode.array(Day.encode);
-
-let decode = json => json |> Json.Decode.array(Day.decode);
+let decode = json => json |> Json.Decode.array(Event.decode);
 
 let url = "https://fosdem.org/2018/schedule/xml";
 
@@ -226,84 +186,9 @@ let get = () =>
     |> then_(text => Xml.parse(text) |> ofXml |> resolve)
   );
 
-let filter = (~f: Event.t => bool, schedule: t) =>
-  Js.(
-    Array.map(
-      (day: Day.t) => {
-        let rooms =
-          Array.map(
-            (room: Room.t) => {
-              let events = Array.filter(f, room.events);
-              {...room, events};
-            },
-            day.rooms
-          )
-          |> Array.filter((room: Room.t) => Array.length(room.events) > 0);
-        {...day, rooms};
-      },
-      schedule
-    )
-    |> Array.filter((day: Day.t) => Array.length(day.rooms) > 0)
-  );
-
-let update = (~f: Event.t => Event.t, schedule: t) =>
-  Js.(
-    Array.map(
-      (day: Day.t) => {
-        let rooms =
-          Array.map(
-            (room: Room.t) => {
-              let events = Array.map(f, room.events);
-              {...room, events};
-            },
-            day.rooms
-          );
-        {...day, rooms};
-      },
-      schedule
-    )
-  );
-
-let map = (~f: Event.t => 'a, schedule: t) => {
-  open Js;
-  let out = [||];
-  Array.forEach(
-    (day: Day.t) =>
-      Array.forEach(
-        (room: Room.t) =>
-          Array.forEach(
-            (event: Event.t) => Array.push(f(event), out) |> ignore,
-            room.events
-          ),
-        day.rooms
-      ),
-    schedule
-  );
-  out;
-};
-
-let events = (schedule: t) => {
-  open Js;
-  let events = [||];
-  Array.forEach(
-    (day: Day.t) =>
-      Array.forEach(
-        (room: Room.t) =>
-          Array.forEach(
-            (event: Event.t) => Array.push(event, events) |> ignore,
-            room.events
-          ),
-        day.rooms
-      ),
-    schedule
-  );
-  events;
-};
-
 let findTalk = (schedule: t, id: int) =>
   Js.(
-    filter(~f=e => e.id == id, schedule)
-    |> events
+    Array.filter((e: Event.t) => e.id == id, schedule)
     |> Array.shift
     |> Option.getExn
   );
@@ -312,29 +197,21 @@ let tracksWithTalkCount = (schedule: t) : array((string, int)) => {
   open Js;
   let tracks = Dict.empty();
   Array.forEach(
-    (day: Day.t) =>
-      Array.forEach(
-        (room: Room.t) =>
-          Array.forEach(
-            (event: Event.t) => {
-              let talks =
-                switch (Dict.get(tracks, event.track)) {
-                | Some(talks) => talks + 1
-                | None => 1
-                };
-              Dict.set(tracks, event.track, talks);
-            },
-            room.events
-          ),
-        day.rooms
-      ),
+    (event: Event.t) => {
+      let talks =
+        switch (Dict.get(tracks, event.track)) {
+        | Some(talks) => talks + 1
+        | None => 1
+        };
+      Dict.set(tracks, event.track, talks);
+    },
     schedule
   );
   Dict.entries(tracks);
 };
 
 let talksForTrack = (~track: string, schedule: t) =>
-  filter(~f=e => e.track == track, schedule) |> events;
+  Js.Array.filter((e: Event.t) => e.track == track, schedule);
 
 let groupByDay = events : Js.Dict.t(array(Event.t)) =>
   Js.(
@@ -356,7 +233,7 @@ let groupByDay = events : Js.Dict.t(array(Event.t)) =>
 
 let talksByDay = (schedule: t) =>
   Js.(
-    map(~f=e => (e.date, e), schedule)
+    Array.map((e: Event.t) => (e.date, e), schedule)
     |> Array.sortInPlaceWith(((d1, e1: Event.t), (d2, e2: Event.t)) => {
          let t1 = d1 |> Date.fromString |> Date.getTime;
          let t2 = d2 |> Date.fromString |> Date.getTime;
@@ -370,13 +247,11 @@ let talksByDay = (schedule: t) =>
 let talksByIds = (~ids: array(int), schedule: t) => {
   open Js;
   let ids = Array.map(n => (string_of_int(n), true), ids) |> Dict.fromArray;
-  filter(
-    ~f=
-      (event: Event.t) =>
-        Dict.get(ids, string_of_int(event.id)) |> Option.isSome,
+  Array.filter(
+    (event: Event.t) =>
+      Dict.get(ids, string_of_int(event.id)) |> Option.isSome,
     schedule
-  )
-  |> events;
+  );
 };
 
 let upcomingTalks = events => {
@@ -393,4 +268,4 @@ let upcomingTalks = events => {
 };
 
 let favorites = (schedule: t) =>
-  filter(~f=(e: Event.t) => e.favorite, schedule) |> events;
+  Js.Array.filter((e: Event.t) => e.favorite, schedule);

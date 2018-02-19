@@ -65,8 +65,8 @@ let make = () => {
     | (MarkFavorite(id), Loaded(schedule)) =>
       ReasonReact.Update(
         Loaded(
-          Schedule.update(
-            ~f=e => e.id == id ? {...e, favorite: true} : e,
+          Array.map(
+            (e: Schedule.Event.t) => e.id == id ? {...e, favorite: true} : e,
             schedule
           )
         )
@@ -74,8 +74,8 @@ let make = () => {
     | (RemoveFavorite(id), Loaded(schedule)) =>
       ReasonReact.Update(
         Loaded(
-          Schedule.update(
-            ~f=e => e.id == id ? {...e, favorite: false} : e,
+          Array.map(
+            (e: Schedule.Event.t) => e.id == id ? {...e, favorite: false} : e,
             schedule
           )
         )
