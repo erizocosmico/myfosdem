@@ -56,7 +56,7 @@ let make = (~schedule: Schedule.t, ~navigation, _) => {
 let jsComponent =
   ReasonReact.wrapReasonForJs(~component, jsProps =>
     make(
-      ~schedule=jsProps##screenProps,
+      ~schedule=jsProps##screenProps##schedule,
       ~navigation=StackNavigator.navigation(jsProps),
       [||]
     )

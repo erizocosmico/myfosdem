@@ -53,9 +53,15 @@ let routes = [
 
 let component = TabNavigator.make(routes, config);
 
-let make = (~schedule: Schedule.t, children) =>
+let make = (~schedule: Schedule.t, ~favorite, ~removeFavorite, children) =>
   ReasonReact.wrapJsForReason(
     ~reactClass=component,
-    ~props={"screenProps": schedule},
+    ~props={
+      "screenProps": {
+        "schedule": schedule,
+        "favorite": favorite,
+        "removeFavorite": removeFavorite
+      }
+    },
     children
   );

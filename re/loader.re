@@ -32,6 +32,15 @@ let styles =
     )
   );
 
+let updateAndSaveSchedule = schedule =>
+  ReasonReact.UpdateWithSideEffects(
+    Loaded(schedule),
+    (_) =>
+      Storage.Schedule.save(schedule)
+      |> Promise.then_(Promise.resolve)
+      |> ignore
+  );
+
 let make = () => {
   ...component,
   initialState: () => Loading,
@@ -47,37 +56,29 @@ let make = () => {
              | None =>
                Schedule.get()
                |> Promise.then_(schedule =>
-                    Storage.Schedule.save(schedule)
-                    |> Promise.then_(() =>
-                         self.ReasonReact.send(LoadedSchedule(schedule))
-                         |> Promise.resolve
-                       )
+                    self.ReasonReact.send(LoadedSchedule(schedule))
+                    |> Promise.resolve
                   )
              /*** TODO: handle exception */
              }
            )
         |> ignore
     ),
-  /*** TODO: update in storage every time a fav is changed */
   reducer: (action, state) =>
     switch (action, state) {
-    | (LoadedSchedule(schedule), _) => ReasonReact.Update(Loaded(schedule))
+    | (LoadedSchedule(schedule), _) => updateAndSaveSchedule(schedule)
     | (MarkFavorite(id), Loaded(schedule)) =>
-      ReasonReact.Update(
-        Loaded(
-          Array.map(
-            (e: Schedule.Event.t) => e.id == id ? {...e, favorite: true} : e,
-            schedule
-          )
+      updateAndSaveSchedule(
+        Array.map(
+          (e: Schedule.Event.t) => e.id == id ? {...e, favorite: true} : e,
+          schedule
         )
       )
     | (RemoveFavorite(id), Loaded(schedule)) =>
-      ReasonReact.Update(
-        Loaded(
-          Array.map(
-            (e: Schedule.Event.t) => e.id == id ? {...e, favorite: false} : e,
-            schedule
-          )
+      updateAndSaveSchedule(
+        Array.map(
+          (e: Schedule.Event.t) => e.id == id ? {...e, favorite: false} : e,
+          schedule
         )
       )
     | _ => ReasonReact.NoUpdate
@@ -88,7 +89,12 @@ let make = () => {
       <View style=styles##container>
         <Text value="Loading schedule..." style=styles##loading />
       </View>
-    | Loaded(schedule) => <Root schedule />
+    | Loaded(schedule) =>
+      <Root
+        schedule
+        favorite=(id => self.send(MarkFavorite(id)))
+        removeFavorite=(id => self.send(RemoveFavorite(id)))
+      />
     | Error =>
       <View style=styles##container>
         <Text value="Unable to load FOSDEM schedule" style=styles##errorMsg />

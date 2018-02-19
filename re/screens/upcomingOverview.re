@@ -10,7 +10,7 @@ let styles =
           style([flex(1.), backgroundColor("white"), paddingTop(Pt(20.))]),
         "finished":
           style([
-            fontSize(Float(18.)),
+            fontSize(Float(16.)),
             paddingTop(Pt(10.)),
             paddingLeft(Pt(20.)),
             paddingRight(Pt(20.)),
@@ -121,7 +121,7 @@ let make = (~schedule: Schedule.t, ~navigation, _) => {
 let jsComponent =
   ReasonReact.wrapReasonForJs(~component, jsProps =>
     make(
-      ~schedule=jsProps##screenProps,
+      ~schedule=jsProps##screenProps##schedule,
       ~navigation=StackNavigator.navigation(jsProps),
       [||]
     )

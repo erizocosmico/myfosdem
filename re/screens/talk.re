@@ -98,7 +98,14 @@ let share = (talk: Schedule.Event.t) =>
     |> ignore
   );
 
-let make = (~talk: Schedule.Event.t, ~navigation, _) => {
+let make =
+    (
+      ~talk: Schedule.Event.t,
+      ~favorite: int => unit,
+      ~removeFavorite: int => unit,
+      ~navigation,
+      _
+    ) => {
   ...component,
   render: (_) =>
     <View style=Theme.styles##container>
@@ -123,14 +130,29 @@ let make = (~talk: Schedule.Event.t, ~navigation, _) => {
           )
         </View>
         <View style=styles##actions>
-          <IconButton
-            title="FAVORITE"
-            icon="heart"
-            iconSize=20
-            fontSize=11
-            bold=true
-            color="rgb(119,81,251)"
-          />
+          (
+            talk.favorite ?
+              <IconButton
+                title="REMOVE FAVORITE"
+                kind=Icon.entypo
+                icon="heart"
+                onPress=(() => removeFavorite(talk.id))
+                iconSize=20
+                fontSize=11
+                bold=true
+                color="rgb(119,81,251)"
+              /> :
+              <IconButton
+                title="FAVORITE"
+                kind=Icon.entypo
+                icon="heart-outlined"
+                onPress=(() => favorite(talk.id))
+                iconSize=20
+                fontSize=11
+                bold=true
+                color="rgb(119,81,251)"
+              />
+          )
           <IconButton
             title="SHARE"
             icon="share"
@@ -178,7 +200,13 @@ let jsComponent =
     ~component,
     jsProps => {
       let talkId = int_of_string(jsProps##navigation##state##params##talk);
-      let talk = Schedule.findTalk(jsProps##screenProps, talkId);
-      make(~talk, ~navigation=StackNavigator.navigation(jsProps), [||]);
+      let talk = Schedule.findTalk(jsProps##screenProps##schedule, talkId);
+      make(
+        ~talk,
+        ~navigation=StackNavigator.navigation(jsProps),
+        ~favorite=jsProps##screenProps##favorite,
+        ~removeFavorite=jsProps##screenProps##removeFavorite,
+        [||]
+      );
     }
   );

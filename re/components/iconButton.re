@@ -5,6 +5,7 @@ let component = ReasonReact.statelessComponent("IconButton");
 let make =
     (
       ~onPress=() => (),
+      ~kind=Icon.feather,
       ~color="",
       ~disabled=false,
       ~accessibilityLabel="",
@@ -22,7 +23,7 @@ let make =
       accessibilityLabel
       disabled
       style=Style.(style([flexDirection(Row), alignItems(Center)]))>
-      <Icon name=icon color size=iconSize />
+      <Icon kind name=icon color size=iconSize />
       <Text
         value=title
         style=(
