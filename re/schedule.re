@@ -1,7 +1,8 @@
 let firstElementText = (node, element) =>
-  Xml.elements(node, element)
-  |> Xml.first
-  |> Js.Option.map( => [@bs] (node => Xml.text(node)))
+  Js.Option.map(
+    [@bs] (node => Xml.text(node)),
+    Xml.elements(node, element) |> Xml.first
+  )
   |> Js.Option.getWithDefault("");
 
 let optToInt = opt => Js.Option.map([@bs] (v => int_of_string(v)), opt);
@@ -92,18 +93,17 @@ module Event = {
     id: Xml.attribute(node, "id") |> optToInt |> Js.Option.getWithDefault(0),
     start: firstElementText(node, "start") |> Time.ofString,
     duration:
-      Xml.elements(node, "duration")
-      |> Xml.first
-      |> Js.Option.map( =>
-           [@bs]
-           (
-             node =>
-               switch (Js.String.split(":", Xml.text(node))) {
-               | [|h, m|] => int_of_string(h) * 60 + int_of_string(m)
-               | _ => 0
-               }
-           )
-         )
+      Js.Option.map(
+        [@bs]
+        (
+          node =>
+            switch (Js.String.split(":", Xml.text(node))) {
+            | [|h, m|] => int_of_string(h) * 60 + int_of_string(m)
+            | _ => 0
+            }
+        ),
+        Xml.elements(node, "duration") |> Xml.first
+      )
       |> Js.Option.getWithDefault(0),
     date,
     room: firstElementText(node, "room"),
@@ -246,7 +246,8 @@ let filter = (~f: Event.t => bool, schedule: t) =>
     |> Array.filter((day: Day.t) => Array.length(day.rooms) > 0)
   );
 
-let update = (~f: Event.t => Event.t, schedule: t) => Js.(
+let update = (~f: Event.t => Event.t, schedule: t) =>
+  Js.(
     Array.map(
       (day: Day.t) => {
         let rooms =

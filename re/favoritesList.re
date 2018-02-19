@@ -1,5 +1,3 @@
-open Js;
-
 open BsReactNative;
 
 type state =
