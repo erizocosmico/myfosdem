@@ -1,0 +1,14 @@
+{
+  "name": "myfosdem",
+  "reason": {
+    "react-jsx": 2
+  },
+  "bsc-flags": ["-bs-super-errors"],
+  "bs-dependencies": ["bs-react-native", "reason-react", "bs-fetch", "bs-json"],
+  "sources": [
+    {
+      "dir": "re"
+    }
+  ],
+  "refmt": 3
+}
