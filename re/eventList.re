@@ -43,7 +43,7 @@ let renderEvent =
       ~showDate,
       ~navigation,
       ~detailScreen,
-      {item}: FlatList.renderBag(Schedule.Event.t)
+      {item}: VirtualizedList.renderBag(Schedule.Event.t)
     ) =>
   <TouchableOpacity
     onPress=(goToDetail(navigation, detailScreen, item))
@@ -86,12 +86,16 @@ let make =
     ) => {
   ...component,
   render: (_) =>
-    <FlatList
+    <VirtualizedList
       data=events
       keyExtractor=keyFromEvent
-      initialNumToRender=15
+      initialNumToRender=10
+      windowSize=30
+      maxToRenderPerBatch=30
+      getItemCount=(data => Array.length(data))
+      getItem=((data, i) => data[i])
       renderItem=(
-        FlatList.renderItem(
+        VirtualizedList.renderItem(
           renderEvent(
             ~navigation,
             ~detailScreen,
