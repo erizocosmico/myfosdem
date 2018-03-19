@@ -79,6 +79,20 @@ let styles =
     )
   );
 
+let htmlList = (f: 'a => string, elems: array('a)) =>
+  <HtmlText
+    value=(
+      "<ul>"
+      ++ Array.reduce(
+           (++),
+           "",
+           Array.map(elem => "<li>" ++ f(elem) ++ "</li>", elems)
+         )
+      ++ "</ul>"
+    )
+    styles=Theme.htmlStyles
+  />;
+
 let infoSection = (title: string, value: string) =>
   <View>
     <Text style=styles##infoTitle value=title />
@@ -188,6 +202,28 @@ let make =
                 value=("<div>" ++ talk.description ++ "</div>")
                 styles=Theme.htmlStyles
               />
+            </View> :
+            ReasonReact.nullElement
+        )
+        (
+          Array.length(talk.people) > 0 ?
+            <View style=styles##section>
+              <Text style=styles##sectionTitle value="People" />
+              (htmlList((p: Schedule.Person.t) => p.name, talk.people))
+            </View> :
+            ReasonReact.nullElement
+        )
+        (
+          Array.length(talk.links) > 0 ?
+            <View style=styles##section>
+              <Text style=styles##sectionTitle value="Links" />
+              (
+                htmlList(
+                  (l: Schedule.Link.t) =>
+                    "<a href=\"" ++ l.url ++ "\">" ++ l.title ++ "</a>",
+                  talk.links
+                )
+              )
             </View> :
             ReasonReact.nullElement
         )

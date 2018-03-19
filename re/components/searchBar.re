@@ -2,7 +2,7 @@ open BsReactNative;
 
 let component = ReasonReact.statelessComponent("SearchBar");
 
-let make = (~onChangeText: string => unit, query: string) => {
+let make = (~onChangeText: string => unit, ~query: string, _) => {
   ...component,
   render: (_) =>
     <View style=Theme.styles##searchBar>

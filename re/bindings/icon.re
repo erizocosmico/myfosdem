@@ -1,8 +1,8 @@
-[@bs.module "@expo/vector-icons"]
-external feather : ReasonReact.reactClass = "Feather";
+[@bs.module "react-native-vector-icons/Feather"]
+external feather : ReasonReact.reactClass = "default";
 
-[@bs.module "@expo/vector-icons"]
-external entypo : ReasonReact.reactClass = "Entypo";
+[@bs.module "react-native-vector-icons/Entypo"]
+external entypo : ReasonReact.reactClass = "default";
 
 let make = (~kind=feather, ~name: string, ~size: int, ~color: string, children) =>
   ReasonReact.wrapJsForReason(
