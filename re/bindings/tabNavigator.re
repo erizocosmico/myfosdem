@@ -54,7 +54,8 @@ type tabBarConfig = {
   "animationEnabled": Js.boolean,
   "tabBarOptions": tabBarOptions,
   "tabBarPosition": string,
-  "tabBarComponent": ReasonReact.reactClass
+  "tabBarComponent": ReasonReact.reactClass,
+  "lazy": Js.boolean
 };
 
 type tabBarPosition =
@@ -67,7 +68,7 @@ external top : ReasonReact.reactClass = "TabBarTop";
 [@bs.module "react-navigation"]
 external bottom : ReasonReact.reactClass = "TabBarBottom";
 
-let config = (~animationEnabled, ~position, ~options) => {
+let config = (~animationEnabled, ~position, ~options, ~isLazy) => {
   "animationEnabled": Js.Boolean.to_js_boolean(animationEnabled),
   "tabBarOptions": options,
   "tabBarPosition":
@@ -79,7 +80,8 @@ let config = (~animationEnabled, ~position, ~options) => {
     switch position {
     | Top => top
     | Bottom => bottom
-    }
+    },
+  "lazy": Js.Boolean.to_js_boolean(isLazy)
 };
 
 [@bs.module "react-navigation"]

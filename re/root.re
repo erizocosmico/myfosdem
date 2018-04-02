@@ -6,6 +6,7 @@ let config =
     config(
       ~animationEnabled=true,
       ~position=Bottom,
+      ~isLazy=true,
       ~options=
         options(
           ~activeTintColor=Theme.accent,

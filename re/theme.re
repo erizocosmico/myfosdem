@@ -72,7 +72,9 @@ let styles =
             paddingTop(Pt(10.)),
             paddingBottom(Pt(10.)),
             borderBottomWidth(1.),
-            borderBottomColor(lightBorderColor)
+            borderBottomColor(lightBorderColor),
+            flex(1.),
+            justifyContent(SpaceAround)
           ]),
         "statusBar": style([height(Pt(20.)), backgroundColor("white")]),
         "searchBar":

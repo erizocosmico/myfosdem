@@ -1,5 +1,17 @@
 open BsReactNative;
 
+let view = Recyclerlistview.view;
+
+type dimensions;
+
+[@bs.module "react-native"] external dimensions : dimensions = "Dimensions";
+
+type dims = {. "width": int};
+
+[@bs.send] external getDimensions : (dimensions, string) => dims = "get";
+
+let windowWidth = getDimensions(dimensions, "window")##width;
+
 let component = ReasonReact.statelessComponent("EventList");
 
 let styles =
@@ -43,7 +55,8 @@ let renderEvent =
       ~showDate,
       ~navigation,
       ~detailScreen,
-      {item}: VirtualizedList.renderBag(Schedule.Event.t)
+      _,
+      item: Schedule.Event.t
     ) =>
   <TouchableOpacity
     onPress=(goToDetail(navigation, detailScreen, item))
@@ -74,6 +87,24 @@ let renderEvent =
     </View>
   </TouchableOpacity>;
 
+let layoutProvider =
+  Recyclerlistview.(
+    makeLayoutProvider(
+      (_) => 1, /* we only have one type */
+      (_, dim) => {
+        setWidth(dim, windowWidth);
+        setHeight(dim, 65);
+        dim;
+      }
+    )
+  );
+
+let baseDataProvider =
+  Recyclerlistview.makeDataProvider(
+    (e1: Schedule.Event.t, e2: Schedule.Event.t) =>
+    e1.id == e2.id
+  );
+
 let make =
     (
       ~events: array(Schedule.Event.t),
@@ -86,16 +117,13 @@ let make =
     ) => {
   ...component,
   render: (_) =>
-    <VirtualizedList
-      data=events
-      keyExtractor=keyFromEvent
-      initialNumToRender=10
-      windowSize=30
-      maxToRenderPerBatch=30
-      getItemCount=(data => Array.length(data))
-      getItem=((data, i) => data[i])
-      renderItem=(
-        VirtualizedList.renderItem(
+    if (Array.length(events) == 0) {
+      ReasonReact.nullElement;
+    } else {
+      let dataProvider =
+        baseDataProvider |> Recyclerlistview.cloneWithRows(events);
+      <Recyclerlistview
+        rowRenderer=(
           renderEvent(
             ~navigation,
             ~detailScreen,
@@ -104,6 +132,9 @@ let make =
             ~showDate
           )
         )
-      )
-    />
+        dataProvider
+        layoutProvider
+        style=styles##container
+      />;
+    }
 };
